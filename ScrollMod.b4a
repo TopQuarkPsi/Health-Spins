@@ -1,0 +1,158 @@
+﻿Build1=Default,b4a.example
+File1=bonus.bmp
+File10=sprite90.bmp
+File2=DIRTYEGO.TTF
+File3=HiLobackground.bmp
+File4=HiLobutton.bmp
+File5=icon.png
+File6=myeye.bmp
+File7=psychotic.jpg
+File8=psychotic2stretch.bmp
+File9=psychotic3.jpg
+FileGroup1=Default Group
+FileGroup10=Default Group
+FileGroup2=Default Group
+FileGroup3=Default Group
+FileGroup4=Default Group
+FileGroup5=Default Group
+FileGroup6=Default Group
+FileGroup7=Default Group
+FileGroup8=Default Group
+FileGroup9=Default Group
+Group=Default Group
+Library1=core
+Library2=gameview
+ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: https://www.b4x.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="5" android:targetSdkVersion="28"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~'End of default text.~\n~
+Module1=Bonus1
+Module2=HiOrLo
+Module3=MainGame
+Module4=Prizecost
+Module5=Settings
+Module6=Starter
+Module7=wheel
+NumberOfFiles=10
+NumberOfLibraries=2
+NumberOfModules=7
+Version=9.801
+@EndOfDesignText@
+#Region  Project Attributes 
+	#ApplicationLabel: Unlimited Spins Fruit Machine
+	#VersionCode: 5
+	#VersionName: 
+	'SupportedOrientations possible values: unspecified, landscape or portrait.
+	#SupportedOrientations: portrait
+	#CanInstallToExternalStorage: False
+	#BridgeLogger: True
+#End Region
+
+#Region  Activity Attributes 
+	#FullScreen: False
+	#IncludeTitle: True
+#End Region
+
+Sub Process_Globals
+	'Use the Main Activity as the username screen and start/resume the main game from here
+	Public name As String
+	Public gamestarted As Boolean = False
+	Public hiscore As Int
+	Dim pbd, pic1 As Bitmap
+	Dim t As Typeface
+End Sub
+
+Sub Globals
+	'These global variables will be redeclared each time the activity is created.
+	'These variables can only be accessed from this module.
+	Private enter As EditText
+	Private startresume As Button
+	Private choose As Button
+	Private welcome As Label
+End Sub
+
+Sub Activity_Create(FirstTime As Boolean)
+	pbd.Initialize(File.DirAssets,"psychotic2stretch.bmp")
+	Activity.SetBackgroundImage(pbd)
+	
+	t = Typeface.LoadFromAssets("DIRTYEGO.TTF")
+
+	pic1.Initialize(File.DirAssets,"psychotic3.jpg")
+	
+	enter.Initialize("enter")
+	enter.SetBackgroundImage(pic1)
+	Activity.AddView(enter,15%x,5%y,70%x,15%y)
+
+	startresume.Initialize("startresume")
+	Activity.AddView(startresume,25%x,75%y,50%x,20%y)
+
+	choose.Initialize("choose")
+	Activity.AddView(choose,25%x,55%y,50%x,20%y)
+
+	welcome.Initialize("")
+	Activity.AddView(welcome,20%x,25%y,60%x,25%y)
+
+	startresume.Typeface = t
+	choose.Typeface = t
+	welcome.Typeface = t
+	enter.Typeface = t
+	enter.HintColor = Colors.Blue
+	enter.Hint = "Enter your name here."
+	enter.HintColor = Colors.Green
+	enter.TextSize = 32
+	enter.TextColor = Colors.Green
+	enter.SingleLine = True
+	enter.Wrap = True
+	enter.Enabled = True
+	startresume.TextSize = 32
+	startresume.Text = "Press Me!"
+	startresume.TextColor = Colors.Magenta
+	welcome.TextColor = Colors.Magenta
+	welcome.TextSize = 27
+	welcome.SingleLine = False
+	choose.Text = "Enter Settings"
+End Sub
+
+Sub Activity_Resume
+	If gamestarted = False Then
+		startresume.Enabled = False
+		choose.Enabled = False
+		welcome.Text = "Welcome! Please enter your username above!"
+	Else
+		hiscore = Starter.scores.Get(name)
+		welcome.Text = name & " Your score is " & Starter.hiscore
+	End If
+End Sub
+
+Sub Activity_Pause (UserClosed As Boolean)
+	gamestarted = True
+End Sub
+
+Sub enter_EnterPressed
+	Dim ET As EditText
+	ET = Sender
+	name = ET.Text
+	If Starter.scores.ContainsKey(name) Then
+		hiscore = Starter.scores.Get(name)
+		Starter.hiscore = hiscore
+		Log("Data retrieved")
+		welcome.Text = "Welcome " & name & " your score is " & hiscore
+	Else If Starter.scores.Size < 11 Then
+		CallSubDelayed(Starter,"newuser")
+		welcome.Text = "Welcome " & name
+	Else
+		welcome.Text = "Too many users please use existing acount"
+		Msgbox2Async("Delete Hi Scores?", "Too many users.","Delete all","","No thanks",Null,False)
+		Wait For Msgbox_Result (result As Int)
+		If result = DialogResponse.POSITIVE Then
+			Starter.scores.Clear
+		End If
+	End If
+	startresume.Enabled = True
+	choose.Enabled = True
+	gamestarted = True
+
+End Sub
+Sub startresume_Click
+	StartActivity(MainGame)
+End Sub
+Sub choose_Click
+	StartActivity(Settings)
+End Sub
